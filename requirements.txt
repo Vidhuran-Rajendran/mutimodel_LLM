@@ -1,3 +1,5 @@
 chromadb
+rank-bm25
 sentence-transformers
 pandas
+ollama

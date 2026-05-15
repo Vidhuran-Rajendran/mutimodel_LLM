@@ -1,8 +1,18 @@
-from app.router import route
-from app.agent import run_agent
+from retrieval.vector_search import VectorSearch
+from ingestion.loader import load_text_file
+from models.llm import generate
 
 def main():
-    print("Multimodal AI System Started")
+    print("Multimodal AI System (RAG Enabled)")
+
+    vs = VectorSearch()
+
+    # ✅ Load and index data (ONE TIME)
+    filepath = "data/raw/sample.txt"
+    docs = load_text_file(filepath)
+    vs.index(docs)
+
+    print("Documents indexed!")
 
     while True:
         query = input(">> ")
@@ -10,14 +20,24 @@ def main():
         if query.lower() == "exit":
             break
 
-        task = route(query)
+        results = vs.search(query)
 
-        if task == "rag":
-            response = run_agent(query)
-        else:
-            response = f"{task} module not implemented yet"
+        context = "\n".join(results)
 
-        print(response)
+        prompt = f"""
+Answer based on context only:
+
+Context:
+{context}
+
+Question:
+{query}
+"""
+
+        response = generate(prompt)
+
+        print("\n", response)
+
 
 if __name__ == "__main__":
     main()
