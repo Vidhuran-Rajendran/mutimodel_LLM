@@ -11,11 +11,13 @@ class BM25Retriever:
         tokenized = [doc.split() for doc in documents]
         self.bm25 = BM25Okapi(tokenized)
 
-    def search(self, query, top_k=3):
+    def search(self, query, top_k=5):
+
+        
         if self.bm25 is None:
             return []
-
-        query_tokens = re.findall(r'\b\w+\b', query.lower())
+        query_tokens = query.split()
+        #query_tokens = re.findall(r'\b\w+\b', query.lower())
         scores = self.bm25.get_scores(query_tokens)
         ranked = sorted(
             zip(self.docs, scores),

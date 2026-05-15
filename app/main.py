@@ -1,11 +1,11 @@
-from retrieval.vector_search import VectorSearch
+from retrieval.vector_search import HybridSearch
 from ingestion.loader import load_text_file
 from models.llm import generate
 
 def main():
     print("Multimodal AI System (RAG Enabled)")
 
-    vs = VectorSearch()
+    vs = HybridSearch()
 
     # ✅ Load and index data (ONE TIME)
     filepath = "data/raw/sample.txt"
@@ -22,7 +22,8 @@ def main():
 
         results = vs.search(query)
 
-        context = "\n".join(results)
+        context = "\n".join(map(str, results))
+        #context = "\n".join([doc if isinstance(doc, str) else doc[0] for doc in results])
 
         prompt = f"""
 Answer based on context only:

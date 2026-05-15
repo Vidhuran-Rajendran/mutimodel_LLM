@@ -5,7 +5,9 @@ __pycache__/
 *.pyd
 .venv/
 venv/
-
+models/bge_model/*
+models/my_bge_model/*
+models/my_bge_model.zip
 
 # Data & models
 data/raw/*
