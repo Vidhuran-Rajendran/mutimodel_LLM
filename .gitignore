@@ -5,6 +5,7 @@ __pycache__/
 *.pyd
 .venv/
 venv/
+models/*
 models/bge_model/*
 models/my_bge_model/*
 models/my_bge_model.zip

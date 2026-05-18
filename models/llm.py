@@ -5,4 +5,5 @@ def generate(prompt):
         model="qwen2.5",
         messages=[{"role": "user", "content": prompt}]
     )
+    print("generating responce")
     return response['message']['content']

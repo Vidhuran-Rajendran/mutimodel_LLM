@@ -1,4 +1,4 @@
-from retrieval.vector_search import HybridSearch
+from retrieval.search import HybridSearch
 from ingestion.loader import load_text_file
 from models.llm import generate
 
@@ -21,19 +21,16 @@ def main():
             break
 
         results = vs.search(query)
+        print("doc retrived")
 
         context = "\n".join(map(str, results))
         #context = "\n".join([doc if isinstance(doc, str) else doc[0] for doc in results])
+        print("generating ans")
 
         prompt = f"""
-Answer based on context only:
-
-Context:
-{context}
-
-Question:
-{query}
-"""
+        Answer based on context only:
+        Context:{context}
+        Question:{query}"""
 
         response = generate(prompt)
 

@@ -9,4 +9,4 @@ def reciprocal_rank_fusion(bm25_docs, vector_docs, k=60):
         
     sorted_docs = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    return [doc for doc in sorted_docs]
+    return [doc for doc, _ in sorted_docs]
