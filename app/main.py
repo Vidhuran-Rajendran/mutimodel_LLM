@@ -1,7 +1,7 @@
 from retrieval.search import HybridSearch
 from ingestion.pdf_ingestor import load_pdf
 from ingestion.excel_ingestor import load_excel
-from tools.excel_tool import ExcelTool
+from tools.excel_agent import ExcelAgent
 from models.llm import generate
 from app.agent import Agent
 
@@ -17,41 +17,28 @@ def main():
     print("Documents indexed!")
 
     excel_agent = None
+    
     try:
-        df = load_excel("data/raw/sample.xlsx")
-        excel_agent = ExcelTool(df)
+        df = load_excel(r"data\raw\used_cars_data.xlsx")
+        excel_agent = ExcelAgent(df)
 
         print("Excel Agent Ready ✅")
 
         print("\nSuggested questions:")
         print(excel_agent.suggest_questions())
 
-    except:
-        print("No Excel file found")
+    except Exception as e:
+        print(f"Error loading Excel file: {e}")
 
     # MAIN LOOP STARTS HERE
+    agent = Agent(vs, excel_agent)
     while True:
         query = input(">> ")
 
         if query.lower() == "exit":
             break
 
-        # ROUTING
-        if "excel" in query and excel_agent:
-            response = excel_agent.smart_query(query, generate)
-
-        elif "summary" in query and excel_agent:
-            response = excel_agent.summary()
-
-        else:
-            results = vs.search(query)
-            context = "\n".join(results[:3])
-
-            response = generate(f"""
-Answer using context:
-{context}
-Question: {query}
-""")
+        response = agent.run(query)
         print("\nAnswer:\n", response)
 
 if __name__ == "__main__":

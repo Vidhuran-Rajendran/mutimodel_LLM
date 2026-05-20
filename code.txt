@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-class ExcelTool:
+class ExcelAgent:
     def __init__(self, df):
         self.raw_df = df
         self.df = self._clean_data(df)
