@@ -1,5 +1,5 @@
 from retrieval.search import HybridSearch
-from ingestion.loader import load_text_file
+from ingestion.pdf_ingestor import load_pdf
 from models.llm import generate
 
 def main():
@@ -8,8 +8,8 @@ def main():
     vs = HybridSearch()
 
     # ✅ Load and index data (ONE TIME)
-    filepath = "data/raw/sample.txt"
-    docs = load_text_file(filepath)
+    filepath = r"data\raw\research_test_file.pdf"
+    docs = load_pdf(filepath)
     vs.index(docs)
 
     print("Documents indexed!")

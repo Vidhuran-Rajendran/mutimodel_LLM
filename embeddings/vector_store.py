@@ -5,13 +5,24 @@ class VectorStore:
         self.client = chromadb.PersistentClient(path=path)
         self.collection = self.client.get_or_create_collection(name=collection_name)
 
-    def add(self, ids, documents, embeddings, metadatas):
-        self.collection.add(
-            ids=ids,
-            documents=documents,
-            embeddings=embeddings,
-            metadatas=metadatas
-        )
+    def add(self, ids, documents, embeddings, metadatas, batch_size = 500):
+        total = len(ids)
+        if total == 0:
+            print("no documents to index")
+            return
+        
+        for i in range(0, total, batch_size):
+            batch_ids = ids[i:i+batch_size]
+            batch_docs = documents[i:i+batch_size]
+            batch_embeds = embeddings[i:i+batch_size]
+            batch_meta = metadatas[i:i+batch_size]
+            
+            self.collection.add(
+                ids=batch_ids,
+                documents=batch_docs,
+                embeddings=batch_embeds,
+                metadatas=batch_meta
+            )
 
     def query(self, query_embedding, top_k=5):
         results = self.collection.query(

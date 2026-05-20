@@ -18,7 +18,7 @@ class HybridSearch:
         ids = [str(i) for i in range(len(documents))]
         metadata = [{"source": "file"} for _ in documents]
 
-        self.store.add(ids, documents, embeddings, metadata)
+        self.store.add(ids, documents, embeddings, metadata, batch_size=500)
         self.bm25.fit(documents)
 
     def search(self, query):
