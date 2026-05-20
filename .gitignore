@@ -5,10 +5,11 @@ __pycache__/
 *.pyd
 .venv/
 venv/
-models/*
+
 models/bge_model/*
 models/my_bge_model/*
-models/my_bge_model.zip
+models/bge_reranker_model/*
+models/my_bge_model/*
 
 # Data & models
 data/raw/*
