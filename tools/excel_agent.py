@@ -8,9 +8,9 @@ class ExcelAgent:
         self.schema = self._analyze_schema()
 
     def _clean_data(self,df):
-        df = df.copy
+        df = df.copy()
         
-        df.columns = df.columns.srt.strip().str.lower()
+        df.columns = df.columns.str.strip().str.lower()
         
         for col in df.columns:
             if pd.api.types.is_numeric_dtype(df[col]):
@@ -18,8 +18,8 @@ class ExcelAgent:
             else:
                 df[col]=df[col].fillna("unknown")
                 
-        for col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors = "coerce")
+        # for col in df.columns:
+        #     df[col] = pd.to_numeric(df[col], errors = "coerce")
         
         return df
     def _analyze_schema(self):

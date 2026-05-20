@@ -14,20 +14,25 @@ Choose the best tool for the query.
 
 Available tools:
 1. RAG → for general knowledge / documents
-2. EXCEL → for data analysis (numbers, averages, tables)
+2. EXCEL → for data analysis or dataset numbers, averages, tables
 
 Rules:
 - If query involves numbers, averages, totals → EXCEL
+- If query asks about dataset values → EXCEL
 - Otherwise → RAG
 
 Query:
 {query}
 
-Return ONLY one word: RAG or EXCEL
+Return ONLY: RAG or EXCEL
 """
         decision = generate(prompt).strip().upper()
         
-        return decision
+        if "EXCEL" in decision:
+            return "EXCEL"
+        else:
+            return "RAG"
+
     
     def run(self, query):
         tool = self.choose_tool(query)
