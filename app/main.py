@@ -1,6 +1,6 @@
 from retrieval.search import HybridSearch
 from ingestion.pdf_ingestor import load_pdf
-from ingestion.excel_ingestor import load_excel
+import ingestion.excel_ingestor as excel_loader
 from tools.excel_agent import ExcelAgent
 from models.llm import generate
 from app.agent import Agent
@@ -19,12 +19,13 @@ def main():
     excel_agent = None
     
     try:
-        df = load_excel(r"data\raw\used_cars_data.xlsx")
+        df = excel_loader.load_excel(r"data\raw\used_cars_data.xlsx")
+        print(type(df))
         excel_agent = ExcelAgent(df)
 
         print("Excel Agent Ready ✅")
-
         print("\nSuggested questions:")
+        
         print(excel_agent.suggest_questions())
 
     except Exception as e:
