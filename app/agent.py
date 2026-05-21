@@ -1,55 +1,56 @@
 from models.llm import generate
+from app.planner import Planner
+
 
 class Agent:
-    def __init__(self,rag_system, excel_tool=None):
+    def __init__(self, rag_system, excel_tool=None):
         self.rag = rag_system
         self.excel = excel_tool
-        
-    def choose_tool(self,query):
-        """Asking LLm to decide"""
-        prompt = f"""
-You are an intelligent router.
+        self.planner = Planner()
 
-Choose the best tool for the query.
-
-Available tools:
-1. RAG → for general knowledge / documents
-2. EXCEL → for data analysis or dataset numbers, averages, tables
-
-Rules:
-- If query involves numbers, averages, totals → EXCEL
-- If query asks about dataset values → EXCEL
-- Otherwise → RAG
-
-Query:
-{query}
-
-Return ONLY: RAG or EXCEL
-"""
-        decision = generate(prompt).strip().upper()
-        
-        if "EXCEL" in decision:
-            return "EXCEL"
-        else:
-            return "RAG"
-
-    
+    # ✅ Multi-step execution
     def run(self, query):
-        tool = self.choose_tool(query)
-        
-        if tool == "RAG":
-            results = self.rag.search(query)
-            print(f"[Agent] Selected tool: {tool}")
-            
+
+        # Step 1: get plan from planner
+        plan = self.planner.create_plan(query)
+
+        # fallback if planner fails
+        if not plan:
+            plan = [("EXCEL", query)]
+
+        print("FINAL PLAN:", plan)
+
+        results = []
+
+        # Step 2: execute steps
+        for i, (tool, task) in enumerate(plan, 1):
+
+            print(f"Executing Step {i}: {tool} → {task}")
+
             if tool == "EXCEL" and self.excel:
-                return self.excel.smart_query(query, generate)
-            
-            results = self.rag.search(query)
-            
-            context = "\n".join(results[:3])
-            response = generate(f"""
-            Answer based on context:
-            Context:{context}
-            Question:{query}""")
-            
-            return response
+                result = self.excel.smart_query(task, generate)
+
+            elif tool == "RAG":
+                docs = self.rag.search(task)
+                result = "\n".join(docs[:3])
+
+            else:
+                result = "Unknown tool"
+
+            print(f"STEP {i} RESULT:", result)
+
+            results.append(f"Step {i} Result:\n{result}")
+
+        # Step 3: final answer (keep Claude style)
+        final_prompt = f"""
+Use these step results to answer the question:
+
+{results}
+
+Question:
+{query}
+"""
+
+        final_answer = generate(final_prompt)
+
+        return final_answer

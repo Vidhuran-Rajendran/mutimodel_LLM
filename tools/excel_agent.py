@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 
 class ExcelAgent:
     def __init__(self, df):
@@ -52,31 +53,50 @@ class ExcelAgent:
         
         return "\n".join(report)
 
+    def _clean_code(self, code):
+        # remove markdown blocks
+        code = re.sub(r"```python|```", "", code)
+        # remove lines that are comments or explanations
+        lines = code.splitlines()
+        code_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                continue
+            if line.startswith("Here") or line.startswith("This") or line.startswith("The"):
+                continue
+            code_lines.append(line)
+        # take the last line — it's almost always the expression
+        return code_lines[-1] if code_lines else ""
     
     def smart_query(self, question, llm_func):
+        schema_desc = "\n".join([f"{k}: {v}" for k, v in self.schema.items()])
+        last_error = None
 
-            schema_desc = "\n".join(
-                [f"{k}: {v}" for k, v in self.schema.items()]
-            )
-
+        for attempt in range(3):
+            error_hint = f"\nPrevious attempt failed with error: {last_error}" if last_error else ""
             prompt = f"""
-    You are a data analyst.
+You are a pandas code generator.
 
-    DataFrame name: df
+DataFrame name: df
 
-    Schema:
-    {schema_desc}
+Schema: {schema_desc}
 
-    IMPORTANT:
-    - Return ONLY valid Python pandas code
-    - No explanation
-    - Handle missing values safely
+IMPORTANT:
+- Return ONLY valid Python pandas code
+- No explanation, No imports, No markdown
+- Must be a valid python expression
 
-    Question:
-    {question}
-    """
-
-            code = llm_func(prompt)
+Question: {question}
+{error_hint}
+"""
+            raw_code = llm_func(prompt)
+            code = self._clean_code(raw_code)
+            if not code:
+                last_error = "Empty code returned"
+                continue
 
             try:
                 # ✅ safe eval (restricted scope)
@@ -85,10 +105,17 @@ class ExcelAgent:
                     {"__builtins__": {}},
                     {"df": self.df, "pd": pd, "np": np}
                 )
-                return str(result)
-
+                explanation = llm_func(f"""
+Result of pandas query: {str(result)[:500]}
+Question asked: {question}
+Give a clear 1-2 sentence answer. No code.
+""")
+                return explanation
             except Exception as e:
-                return f"Execution failed: {e}"
+                last_error = str(e)
+                continue
+
+        return f"Execution failed after 3 attempts: {last_error or 'unknown error'}"
 
     # ----------------------------------
     # ✅ QUERY SUGGESTIONS
