@@ -5,25 +5,23 @@ class Planner:
     def create_plan(self, query):
 
         prompt = f"""
-Break the user query into steps.
+Break the query into steps.
 
-Tools available:
-- EXCEL → dataset operations
-- RAG → document retrieval
-
-Return STRICTLY:
-
-Step 1: <TOOL>: <task>
-Step 2: <TOOL>: <task>
+Tools:
+- EXCEL → spreadsheet dataset
+- PDF_TABLE → tables extracted from PDFs
+- RAG → document text retrieval
 
 Examples:
 
-Q: average price
-Step 1: EXCEL: average price
+Q: average car price
+Step 1: EXCEL: average car price
 
-Q: max price and explain
-Step 1: EXCEL: find max price
-Step 2: RAG: explain pricing trends
+Q: average employee salary from pdf
+Step 1: PDF_TABLE: average employee salary
+
+Q: summarize report
+Step 1: RAG: summarize report
 
 Now:
 

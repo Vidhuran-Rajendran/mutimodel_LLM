@@ -3,9 +3,11 @@ from app.planner import Planner
 from memory.chat_memory import ChatMemory
 
 class Agent:
-    def __init__(self, rag_system, excel_tool=None):
+    def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
         self.rag = rag_system
         self.excel = excel_tool
+        self.pdf_table = pdf_table_tool
+        
         self.planner = Planner()
         self.memory = ChatMemory()
 
@@ -43,7 +45,10 @@ class Agent:
             print(f"Executing Step {i}: {tool} → {task}")
 
             if tool == "EXCEL" and self.excel:
-                result = self.excel.smart_query(task, generate)
+                result = self.excel.smart_query(task, generate)                
+                
+            elif tool == "PDF_TABLE" and self.pdf_table:
+                result = self.pdf_table.smart_query(task,generate)
 
             elif tool == "RAG":
                 docs = self.rag.search(task)
