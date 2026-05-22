@@ -1,18 +1,33 @@
 from models.llm import generate
 from app.planner import Planner
-
+from memory.chat_memory import ChatMemory
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None):
         self.rag = rag_system
         self.excel = excel_tool
         self.planner = Planner()
+        self.memory = ChatMemory()
 
     # ✅ Multi-step execution
     def run(self, query):
+        
+        # step 1: get past conversation
+        history = self.memory.get()
+        
+        #convert memory to text
+        past_context = ""
+        for item in history:
+            past_context += f"user: {item['user']}\nAssistant: {item['response']}\n"
+        
+        enriched_query = f""" 
+        Converation so far: {past_context}
+        Current question: {query}
+        """
+        
 
-        # Step 1: get plan from planner
-        plan = self.planner.create_plan(query)
+        # Step 2: get plan from planner
+        plan = self.planner.create_plan(enriched_query)
 
         # fallback if planner fails
         if not plan:
@@ -22,7 +37,7 @@ class Agent:
 
         results = []
 
-        # Step 2: execute steps
+        # Step 3: execute steps
         for i, (tool, task) in enumerate(plan, 1):
 
             print(f"Executing Step {i}: {tool} → {task}")
@@ -41,16 +56,23 @@ class Agent:
 
             results.append(f"Step {i} Result:\n{result}")
 
-        # Step 3: final answer (keep Claude style)
+        # Step 4: final answer (keep Claude style)
         final_prompt = f"""
-Use these step results to answer the question:
+Conversation:
+{past_context}
 
+Results:
 {results}
 
-Question:
+User question:
 {query}
+
+Give final answer:
 """
 
         final_answer = generate(final_prompt)
+
+        # ✅ Step 5: store memory
+        self.memory.add(query, final_answer)
 
         return final_answer

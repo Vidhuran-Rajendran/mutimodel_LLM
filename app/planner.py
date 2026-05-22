@@ -29,7 +29,6 @@ Now:
 
 Q: {query}
 """
-
         response = generate(prompt)
         print("PLAN RAW:", response)
 
