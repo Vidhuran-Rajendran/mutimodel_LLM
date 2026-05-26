@@ -1,6 +1,8 @@
 from models.llm import generate
 from app.planner import Planner
 from memory.chat_memory import ChatMemory
+from evaluation.evaluator import Evaluator
+from evaluation.logger import Logger
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
@@ -10,6 +12,9 @@ class Agent:
         
         self.planner = Planner()
         self.memory = ChatMemory()
+        
+        self.evaluator = Evaluator()
+        self.logger = Logger()
 
     # ✅ Multi-step execution
     def run(self, query):
@@ -78,6 +83,19 @@ Give final answer:
         final_answer = generate(final_prompt)
 
         # ✅ Step 5: store memory
+        self.memory.add(query, final_answer)
+        
+        evaluation = self.evaluator.evaluate(query=query, context=str(results), answer=final_answer)
+        print("\nEVALUATION:\n", evaluation)
+
+
+        # ✅ Step 6: log the interaction
+        self.logger.log({
+            "query": query,
+            "final_answer": final_answer,
+            "results": results
+        })
+        
         self.memory.add(query, final_answer)
 
         return final_answer
