@@ -4,6 +4,7 @@ from memory.chat_memory import ChatMemory
 from evaluation.evaluator import Evaluator
 from evaluation.logger import Logger
 import asyncio
+from config import SYSTEM_PROMPT
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
@@ -78,6 +79,8 @@ class Agent:
             
         # Step 4: final answer (keep Claude style)
         final_prompt = f"""
+        
+        {SYSTEM_PROMPT}
 Conversation:
 {past_context}
 
@@ -86,6 +89,12 @@ Results:
 
 User question:
 {query}
+
+
+Instructions:
+- Use ONLY the context
+- Be accurate and structured
+- Avoid unnecessary text
 
 Give final answer:
 """
