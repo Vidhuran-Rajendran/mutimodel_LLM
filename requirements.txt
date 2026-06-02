@@ -1,5 +1,25 @@
-chromadb
-rank-bm25
-sentence-transformers
+fastapi
+uvicorn
 pandas
+numpy
+
+# LLM / embeddings / retrieval
+chromadb
+sentence-transformers
+torch
+rank-bm25
+
+# OCR & document processing
+# paddleocr
+pdfplumber
+camelot-py[cv]
+
+# Image processing (needed for OCR pipelines)
+opencv-python
+
+# Utilities
+tqdm
+python-dotenv
+
+# Optional (based on your imports)
 ollama

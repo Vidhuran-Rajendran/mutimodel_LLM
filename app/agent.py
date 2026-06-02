@@ -3,6 +3,7 @@ from app.planner import Planner
 from memory.chat_memory import ChatMemory
 from evaluation.evaluator import Evaluator
 from evaluation.logger import Logger
+import asyncio
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
@@ -16,8 +17,28 @@ class Agent:
         self.evaluator = Evaluator()
         self.logger = Logger()
 
+    
+    async def execute_tool(self, tool, task):
+
+        if tool == "EXCEL" and self.excel:
+            return await asyncio.to_thread(
+                self.excel.smart_query, task, generate
+            )
+
+        elif tool == "PDF_TABLE" and self.pdf_table:
+            return await asyncio.to_thread(
+                self.pdf_table.smart_query, task, generate
+            )
+
+        elif tool == "RAG":
+            return await asyncio.to_thread(
+                self.rag.search, task
+            )
+
+        return "Unknown tool"
+        
     # ✅ Multi-step execution
-    def run(self, query):
+    async def run(self, query):
         
         # step 1: get past conversation
         history = self.memory.get()
@@ -42,30 +63,19 @@ class Agent:
 
         print("FINAL PLAN:", plan)
 
-        results = []
+        tasks = []
 
         # Step 3: execute steps
-        for i, (tool, task) in enumerate(plan, 1):
+        for tool,task in plan:
+            tasks.append(self.execute_tool(tool,task))
 
-            print(f"Executing Step {i}: {tool} → {task}")
-
-            if tool == "EXCEL" and self.excel:
-                result = self.excel.smart_query(task, generate)                
-                
-            elif tool == "PDF_TABLE" and self.pdf_table:
-                result = self.pdf_table.smart_query(task,generate)
-
-            elif tool == "RAG":
-                docs = self.rag.search(task)
-                result = "\n".join(docs[:3])
-
-            else:
-                result = "Unknown tool"
-
-            print(f"STEP {i} RESULT:", result)
-
-            results.append(f"Step {i} Result:\n{result}")
-
+        results_raw = await asyncio.gather(*tasks)
+        
+        results = []
+        for i , res in enumerate(results_raw):
+            print(f"STEP {i+1} RESULT:", res)
+            results.append(f"Step {i+1}:\n{res}")
+            
         # Step 4: final answer (keep Claude style)
         final_prompt = f"""
 Conversation:

@@ -37,7 +37,7 @@ class Query(BaseModel):
     query: str
 
 @app.post('/ask')
-def ask(q: Query):
-    answer = agent.run(q.query)
+async def ask(q: Query):
+    answer = await agent.run(q.query)
     
     return {"query": q.query, "answer": answer}
