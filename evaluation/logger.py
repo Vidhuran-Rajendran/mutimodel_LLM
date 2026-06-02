@@ -14,6 +14,11 @@ class Logger:
             with open(self.path, "r") as f:
                 logs = json.load(f)
         
+        data["avg_score"] = (
+            data["evaluation"]["relevance"] + 
+            data["evaluation"]["faithfulness"] + 
+            data["evaluation"]["correctness"]
+        ) / 3
         logs.append(data)
         
         with open(self.path, "w")as f:

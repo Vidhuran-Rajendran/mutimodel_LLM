@@ -125,14 +125,27 @@ Give final answer:
         self.memory.add(query, final_answer)
         
         evaluation = self.evaluator.evaluate(query=query, context=str(results), answer=final_answer)
-        print("\nEVALUATION:\n", evaluation)
+        
+        print("\nEVALUATION:")
+        print("Relevance:", evaluation["relevance"])
+        print("Faithfulness:", evaluation["faithfulness"])
+        print("Correctness:", evaluation["correctness"])
 
+        avg = (
+            evaluation["relevance"] +
+            evaluation["faithfulness"] +
+            evaluation["correctness"]
+        ) / 3
+
+        if avg < 5:
+            print("[WARNING] Low quality answer")
 
         # ✅ Step 6: log the interaction
         self.logger.log({
             "query": query,
             "final_answer": final_answer,
-            "results": results
+            "results": results,
+            "evaluation": evaluation
         })
         
         self.memory.add(query, final_answer)

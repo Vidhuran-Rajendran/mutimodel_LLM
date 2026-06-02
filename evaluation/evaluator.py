@@ -3,6 +3,21 @@ from models.llm import generate
 class Evaluator:
     def __init__(self):
         pass
+    
+    def parse(self,text):
+        scores = {
+            "relevance": 0,
+            "faithfulness": 0,
+            "correctness": 0    
+        }
+        for line in text.split("\n"):
+            if "Relevance" in line:
+                scores["relevance"] = int(line.split(":")[1].strip())
+            elif "Faithfulness" in line:
+                scores["faithfulness"] = int(line.split(":")[1].strip())
+            elif "Correctness" in line:
+                scores["correctness"] = int(line.split(":")[1].strip())
+        return scores
 
     def evaluate(self, query, context, answer):
         
@@ -29,4 +44,4 @@ Faithfulness: x
 Correctness: x
 """
         result = generate(prompt)
-        return result
+        return self.parse(result)
