@@ -1,4 +1,5 @@
 from models.llm import generate
+from utils.monitor import Monitor
 from app.planner import Planner
 from memory.chat_memory import ChatMemory
 from evaluation.evaluator import Evaluator
@@ -20,6 +21,7 @@ class Agent:
         self.logger = Logger()
         
         self.vector_memory = VectorMemory()
+        self.monitor = Monitor()
 
     
     async def execute_tool(self, tool, task):
@@ -43,6 +45,7 @@ class Agent:
         
     # ✅ Multi-step execution
     async def run(self, query):
+        self.monitor.logs = []
         
         # step 1: get past conversation
         history = self.memory.get()
@@ -65,7 +68,11 @@ class Agent:
         {query}
         """        
         # Step 2: get plan from planner
+        
+        t = self.monitor.start("Planner")
         plan = self.planner.create_plan(enriched_query)
+        self.monitor.end(t)
+
 
         # fallback if planner fails
         if not plan:
@@ -79,8 +86,10 @@ class Agent:
         for tool,task in plan:
             tasks.append(self.execute_tool(tool,task))
 
+        t = self.monitor.start("Tool Execution")
         results_raw = await asyncio.gather(*tasks)
-        
+        self.monitor.end(t)
+
         results = []
         for i , res in enumerate(results_raw):
             print(f"STEP {i+1} RESULT:", res)
@@ -108,7 +117,9 @@ Instructions:
 Give final answer:
 """
 
+        t = self.monitor.start("Final LLM")
         final_answer = generate(final_prompt)
+        self.monitor.end(t)
 
         # ✅ Step 5: store memory
         self.memory.add(query, final_answer)
@@ -126,4 +137,5 @@ Give final answer:
         
         self.memory.add(query, final_answer)
         self.vector_memory.add(f"User: {query} | Answer: {final_answer}")
+        self.monitor.report()
         return final_answer
