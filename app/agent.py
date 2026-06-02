@@ -120,6 +120,15 @@ Give final answer:
 
         t = self.monitor.start("Final LLM")
         final_answer = generate(final_prompt)
+        # retry if weak
+        for _ in range(2):
+            if len(final_answer.strip()) < 30:
+                fix_prompt = f"""
+                Improve this answer:
+                {final_answer}
+                Question:
+                {query}"""
+                final_answer = generate(fix_prompt)
         self.monitor.end(t)
 
         # ✅ Step 5: store memory

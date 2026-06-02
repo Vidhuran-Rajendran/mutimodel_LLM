@@ -17,4 +17,19 @@ class RAGAgent:
         Question:
         {query}
         """
-        return generate(prompt)
+        answer = generate(prompt)
+
+        for _ in range(2):
+            if "not in context" in answer.lower() or len(answer.strip()) < 20:
+                fix_prompt = f"""
+                The previous answer was weak.
+                Context:
+                {context}
+                Question:
+                {query}
+                Improve the answer.
+                """
+                answer = generate(fix_prompt)
+        return answer
+                        
+            
