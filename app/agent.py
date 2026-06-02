@@ -5,6 +5,7 @@ from evaluation.evaluator import Evaluator
 from evaluation.logger import Logger
 import asyncio
 from config import SYSTEM_PROMPT
+from memory.vector_memory import VectorMemory
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
@@ -17,6 +18,8 @@ class Agent:
         
         self.evaluator = Evaluator()
         self.logger = Logger()
+        
+        self.vector_memory = VectorMemory()
 
     
     async def execute_tool(self, tool, task):
@@ -49,12 +52,18 @@ class Agent:
         for item in history:
             past_context += f"user: {item['user']}\nAssistant: {item['response']}\n"
         
-        enriched_query = f""" 
-        Converation so far: {past_context}
-        Current question: {query}
-        """
-        
+        memory_context = self.vector_memory.search(query)
+        memory_text = "\n".join(memory_context[:3])
+        enriched_query = f"""
+        Conversation so far:
+        {past_context}
 
+        Relevant past memory:
+        {memory_text}
+
+        Current question:
+        {query}
+        """        
         # Step 2: get plan from planner
         plan = self.planner.create_plan(enriched_query)
 
@@ -116,5 +125,5 @@ Give final answer:
         })
         
         self.memory.add(query, final_answer)
-
+        self.vector_memory.add(f"User: {query} | Answer: {final_answer}")
         return final_answer

@@ -77,19 +77,23 @@ class ExcelAgent:
 
         for attempt in range(3):
             error_hint = f"\nPrevious attempt failed with error: {last_error}" if last_error else ""
+            
             prompt = f"""
-You are a pandas code generator.
+You are a pandas expert.
 
-DataFrame name: df
+DataFrame: df
 
-Schema: {schema_desc}
+Schema:
+{schema_desc}
 
-IMPORTANT:
-- Return ONLY valid Python pandas code
-- No explanation, No imports, No markdown
-- Must be a valid python expression
+Rules:
+- Return ONLY python code
+- No explanations
+- Use safe operations
 
-Question: {question}
+Question:
+{question}
+
 {error_hint}
 """
             raw_code = llm_func(prompt)
