@@ -16,3 +16,19 @@ def generate(prompt):
     result = response['message']['content']
     cache.set(prompt, result)
     return result
+import ollama
+
+def generate_stream(prompt):
+    cached = cache.get(prompt)
+    if cached:
+        return cached
+
+    stream = ollama.chat(
+        model="qwen:latest",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True
+    )
+
+    for chunk in stream:
+        content = chunk["message"]["content"]
+        yield content

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.agent import Agent
 from retrieval.search import HybridSearch
@@ -7,7 +8,7 @@ from ingestion.pdf_ingestor import load_pdf
 from ingestion.pdf_table_extractor import extract_pdf_tables
 from ingestion.excel_ingestor import load_excel
 import pandas as pd
-
+from models.llm import generate_stream
 app = FastAPI()
 
 rag = HybridSearch()
@@ -38,6 +39,14 @@ class Query(BaseModel):
 
 @app.post('/ask')
 async def ask(q: Query):
-    answer = await agent.run(q.query)
+    #answer = await agent.run(q.query)
     
-    return {"query": q.query, "answer": answer}
+    #return {"query": q.query, "answer": answer}
+
+    async def stream():
+        # ✅ run agent (still normal)
+        answer = await agent.run(q.query)
+        # ✅ stream final answer
+        for token in generate_stream(answer):
+            yield token
+    return StreamingResponse(stream(), media_type="text/plain")
