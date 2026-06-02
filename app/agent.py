@@ -1,4 +1,5 @@
 from models.llm import generate
+from app.rag_agent import RAGAgent
 from utils.monitor import Monitor
 from app.planner import Planner
 from memory.chat_memory import ChatMemory
@@ -10,7 +11,7 @@ from memory.vector_memory import VectorMemory
 
 class Agent:
     def __init__(self, rag_system, excel_tool=None,pdf_table_tool=None):
-        self.rag = rag_system
+        self.rag_agent = RAGAgent(rag_system)
         self.excel = excel_tool
         self.pdf_table = pdf_table_tool
         
@@ -38,7 +39,7 @@ class Agent:
 
         elif tool == "RAG":
             return await asyncio.to_thread(
-                self.rag.search, task
+                self.rag_agent.run, task
             )
 
         return "Unknown tool"
